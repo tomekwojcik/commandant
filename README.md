@@ -1,8 +1,6 @@
 Commandeer
 ==========
 
-[![Build Status](https://circleci.com/gh/fenekku/commandeer/tree/master.png?style=shield&circle-token=7697da2b7caad879ca17ab6ea7acf8729163a06b)](https://circleci.com/gh/fenekku/commandeer)
-
 Take command of your command line.
 
 Commandeer gets data from the command line to your variables and exits
