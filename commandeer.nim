@@ -1,5 +1,5 @@
 import algorithm
-import parseopt2
+import parseopt
 import sequtils
 import strutils
 import tables
@@ -7,6 +7,8 @@ import typetraits
 
 
 type
+  # From parseopt2
+  GetoptResult* = tuple[kind: CmdLineKind, key, val: string]
   assignmentProc = proc(value: string)
   Quantifier {.pure.} = enum
     single, oneOrMore, zeroOrMore
@@ -142,7 +144,7 @@ proc obtainCmdToken(consume: bool): CmdToken =
     let cliToken = if consume: cliTokens.pop() else: cliTokens[^1]
     if not inSubcommand and currentSubcommand.index == 0 and cliToken.key in subcommands:
       return (getOptResult: cliToken, kind: CmdTokenKind.subcommand)
-    elif cliToken.kind in [parseopt2.cmdLongOption, parseopt2.cmdShortOption]:
+    elif cliToken.kind in [parseopt.cmdLongOption, parseopt.cmdShortOption]:
       return (getOptResult: cliToken, kind: CmdTokenKind.option)
     else:
       return (getOptResult: cliToken, kind: CmdTokenKind.argument)
@@ -344,7 +346,8 @@ template subcommand*(identifier: untyped, subcommandNames: varargs[string],
   for subcommandName in subcommandNames:
     subCommands[subcommandName] = thisSubcommand
 
+
 template commandline*(statements: untyped): untyped =
-  cliTokens = reversed(toSeq(parseopt2.getopt()))
+  cliTokens = reversed(toSeq(parseopt.getopt()))
   statements
   interpretCli()

@@ -3,4 +3,8 @@ nimcache/
 *.html
 
 commandeer
-testCommandeer
+# ignore all files in tests
+
+# unignore all files with an extension
+/tests/*
+!/tests/*.*

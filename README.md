@@ -215,4 +215,12 @@ Run the test suite:
 TODO and Contribution
 ---------------------
 
-- Use and see what needs to be added
+### Version 0.14.0
+- Add `flag` argument type
+
+### Version 0.15.0 
+- Add `help=` string variable to all argument types, which will store a description of the argument
+- Create `--help` command that outputs a typical help help message
+
+### Version 0.16.0
+- Create an html AND markdown version of the help message
