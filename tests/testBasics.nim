@@ -13,6 +13,7 @@ commandline:
   argument boolean, bool               #please don't do this for real
   arguments strings, string
   option optionalInteger, int, "int", "i"
+  flag testFlag, "flag", "f"
   exitoption "help", "h", usage()
   exitoption "version", "v", "1.0.0"
   errormsg usage()
@@ -33,4 +34,5 @@ if testing:
   doAssert(character == '?')
   doAssert(strings == @["one", "two", "three"])
   doAssert(optionalInteger == 10)
+  doAssert(testFlag == true)
   doAssert(boolean == false)

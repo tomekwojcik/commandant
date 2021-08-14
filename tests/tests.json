@@ -4,7 +4,7 @@
             {
                 "test name": "Argument, option and arguments map correctly",
                 "file name": "testBasics",
-                "args": "1 2.0 '?' -i:10 false one two three --testing",
+                "args": "1 2.0 '?' -i:10 -f false one two three --testing",
                 "expect": 0
             },
             {
@@ -84,7 +84,7 @@
                 "test name": "Missing arguments for arguments template without atLeast1 doesn't echo a message",
                 "file name": "testOptionalMultiple",
                 "args": "",
-                "expect": 0,
+                "expect": 0
             },
             {
                 "test name": "Missing required argument after optional arguments echoes a message",

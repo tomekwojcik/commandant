@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/), but
 because it is pre 1.0.0, it has a *lot* of leeway :).
 
+## [0.14.0] - 2021-08-14
+### Added
+- `flag` argument type, which is just a simplified `option` where the user only needs to provide a variable and name(s)
 
 ## [0.13.0] - 2021-08-12
 ### Changed 

@@ -24,6 +24,7 @@ commandline:
   argument floatingPoint, float
   argument character, char
   arguments strings, string
+  flag "someFlag" "f"
   option optionalInteger, int, "int", "i", -1
   option testing, bool, "testing", "t"
   exitoption "help", "h",
@@ -35,6 +36,7 @@ echo("integer = ", integer)
 echo("floatingPoint = ", floatingPoint)
 echo("character = ", character)
 echo("strings (one or more) = ", strings)
+echo("flag = ", someFlag)
 
 if optionalInteger != 0:
   echo("optionalInteger = ", optionalInteger)
@@ -47,11 +49,12 @@ if testing:
 **On the command line**
 
 ```
-$ myCLApp --testing 4 8.0 a one two -i:100
+$ myCLApp --testing 4 8.0 a one two -i:100 -f
 integer = 4
 floatingPoint = 8.0
 character = a
 strings (one or more) = @[one, two]
+flag = true
 optionalInteger = 100
 Testing enabled
 $ myCLApp 10 --help
@@ -212,9 +215,6 @@ Run the test suite:
 
 TODO and Contribution
 ---------------------
-
-### Version 0.14.0
-- Add `flag` argument type
 
 ### Version 0.15.0 
 - Add `help=` string variable to all argument types, which will store a description of the argument

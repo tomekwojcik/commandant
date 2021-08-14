@@ -278,6 +278,23 @@ template arguments*(identifier: untyped, t: typeDesc, atLeast1: bool=true): unty
     )
   )
 
+template flag*(identifier: untyped; long, short: string): untyped =
+  var identifier: bool = false
+  var assigner = (
+    proc(value: string) {.closure.} =
+      try:
+        assignConversion(identifier, value)
+      except ValueError:
+        raise newException(
+          ValueError,
+          "Couldn't convert '" & value & "' to " & name(bool)
+        )
+    ,
+    Quantifier.single
+  )
+  currentSubcommand.longOptionAssigners[long] = assigner
+  currentSubcommand.shortOptionAssigners[short] = assigner
+
 
 template option*(identifier: untyped, t: typeDesc, long, short: string,
                  default: t): untyped =
