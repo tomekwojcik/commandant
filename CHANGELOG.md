@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/), but
 because it is pre 1.0.0, it has a *lot* of leeway :).
 
+## [0.15.0] - 2021-08-14
+
+### Changed
+- renamed program from `commandeer` to `commandant` to distinguish the fork
+- removed the old test suite and replaced it
+  - no longer uses a .json file
+  - uses the standard library `unittest` module
+- reworked the `readme.md`, to provide more clear examples.
+
+### Added 
+- example directory with two examples: a trivial case and a more intermediate implementation
+
+
 ## [0.14.0] - 2021-08-14
 ### Added
 - `flag` argument type, which is just a simplified `option` where the user only needs to provide a variable and name(s)

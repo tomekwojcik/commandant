@@ -185,7 +185,7 @@ proc interpretCli() =
         let last = high(currentSubcommand.argumentAssigners)
         for assigner in currentSubcommand.argumentAssigners[currentSubcommand.index..last]:
           if assigner.quantity != Quantifier.zeroOrMore:
-            exitWithErrorMessage("Missing command line arguments")
+            exitWithErrorMessage("Error: When a argument is defined, a value must always be provided")
       break
 
     of CmdTokenKind.subcommand:

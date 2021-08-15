@@ -1,90 +1,102 @@
-Commandeer
+Commandant
 ==========
 
-Take command of your command line.
-
-Commandeer gets data from the command line to your variables and exits
+Commandant gets data from the command line to your variables and exits
 gracefully if there is any issue.
 
 It does this little thing well and lets *you* deal with the rest.
 
-
 Usage
 -----
 
-**In code**
+<br/>
 
+**example1.nim**
 ```nim
-## myCLApp.nim
-
-import commandeer
+import commandant, strformat
 
 commandline:
-  argument integer, int
-  argument floatingPoint, float
-  argument character, char
-  arguments strings, string
-  flag "someFlag" "f"
-  option optionalInteger, int, "int", "i", -1
-  option testing, bool, "testing", "t"
-  exitoption "help", "h",
-             "Usage: myCLApp [--testing|--int=<int>|--help] " &
-             "<int> <float> <char> <string>..."
-  errormsg "You made a mistake!"
+  argument(value, int)
+  flag(selfDestruct, "destroy", "d")
+  option(countdown, float, "time", "t", 12.0) # last parameter is a default value
 
-echo("integer = ", integer)
-echo("floatingPoint = ", floatingPoint)
-echo("character = ", character)
-echo("strings (one or more) = ", strings)
-echo("flag = ", someFlag)
+  # if you define an argument, then you are REQUIRED to always provide a value.
+  #     commandant will terminate the program if an argument is missing.
+  # conversely, flags are optional and the program will run whether they are 
+  #     provided or not.
+  # options are also optional
 
-if optionalInteger != 0:
-  echo("optionalInteger = ", optionalInteger)
-
-if testing:
-  echo("Testing enabled")
-
+if selfDestruct:
+  echo fmt"Using {value} volts, the computer will go to sleep in {countdown} minutes"  
+else:
+  echo fmt"Sadly, I will continue to perform my duties, running at {value} Hz"
+```
+terminal:
+```bash
+./example1 -d -t:5.2 1000
+```
+output:
+```
+Using 1000 volts, the computer will go to sleep in 5.2 minutes
 ```
 
-**On the command line**
+<br/>
 
+**example2.nim**
+```nim
+import ../commandant, strformat
+
+const myProgramVersion = "0.5.4"
+
+proc helpMessage(): string =
+  result = """
+  pico-nim project template builder
+  Usage: example2 <subcommand> <subcommand options> <sillyArg>
+  Available subcommands: 
+    {...}
+  """
+
+commandline:
+  argument(sillyArg, float) 
+  exitoption("help", "h", helpMessage())
+  exitoption("version", "v", myProgramVersion)
+  errormsg("you have made some kind of mistake")
+  subcommand init, "init", "i":
+    argument(name, string)
+    flag(override, "override", "O")
+    option(sdk, string, "sdk", "s")
+    option(nimbase, string, "nimbase", "h")
+    exitoption("help", "h", "I wish i could help you, but I can't")
+  subcommand build, "build", "b":
+    argument(mainProgram, string)
+    option(output, string,"output", "o", "source/build")
+  
+if init:
+  echo fmt"creating a new project directory, {name}. One second..."
+elif build:
+  echo fmt"writing {name}.uf2 to {output}..."
+else:
+  echo "please use either the 'init' or 'build' subcommand..."
+  echo helpMessage()
 ```
-$ myCLApp --testing 4 8.0 a one two -i:100 -f
-integer = 4
-floatingPoint = 8.0
-character = a
-strings (one or more) = @[one, two]
-flag = true
-optionalInteger = 100
-Testing enabled
-$ myCLApp 10 --help
-Usage: myCLApp [--testing|--int=<int>|--help] <int> <float> <char> <string>...
-```
-
-When you have commandeer installed, try passing an incorrect set of
-command line arguments for fun!
-
-See the `tests` folder for other examples.
-
-It doesn't seek to do too much; it just does what's needed.
 
 
 Installation
 ------------
 
-There are 2 ways to install commandeer:
+There are 2 ways to install commandant:
 
 **nimble**
 
 Install [nimble](https://github.com/nim-lang/nimble). Then do:
 
-    $ nimble install commandeer
+    $ nimble install commandant
 
-This will install the latest tagged version of commandeer.
+This will install the latest tagged version of commandant.
 
 **raw**
 
-Copy the commandeer.nim file to your project and import it.
+Copy the commandant.nim file to your project and import it.
 
 When I go this way for Nim libraries, I like to create a `libs/`
 folder in my project and put third-party files in it. I then add the
@@ -98,35 +110,20 @@ Documentation
 **commandline**
 
 `commandline` is used to delimit the space where you define the command line
-arguments and options you expect. All other commandeer constructs (described below)
+arguments and options you expect. All other commandant constructs (described below)
 are placed under it. They are all optional - although you probably want to use
 at least one, right?
 
-**subcommand `identifier`, `name`[, `alias1`, `alias2`...]**
+**subcommand**(`identifier`, `name`, [ `alias1`, `alias2`...])
 
 `subcommand` declares `identifier` to be a variable of type `bool` that is `true`
 if the first command line argument passed is `name` or one of the aliases (`alias1`, `alias2`, etc.) and is `false` otherwise.
 Under it, you define the subcommand arguments and options you expect.
-All other commandeer constructs (described below) *can be* placed under it.
+All other commandant constructs (described below) *can be* placed under it.
 
-For example:
+<br/>
 
-```nim
-commandline:
-  subcommand add, "add", "a":
-    arguments filenames, string
-    option force, bool, "force", "f"
-  option globalOption, bool, "global", "g"
-
-if add:
-  echo "Adding", filenames
-if globalOption:
-  echo "Global option activated"
-```
-
-See `tests/testSubcommands.nim` for a larger example.
-
-**argument `identifier`, `type`**
+**argument**(`identifier`, `type`)
 
 `argument` declares a variable named `identifier` of type `type` initialized with
 the value of the corresponding command line argument converted to type `type`.
@@ -137,8 +134,9 @@ if a `subcommand` is declared then 1) any top-level occurrence of `argument` is
 ignored, 2) the first subcommand `argument` corresponds to the first command line argument
 after the subcommand, the second to the second argument after the subcommand and so on.
 
+<br/>
 
-**arguments `identifier`, `type` [, `atLeast1`]**
+**arguments**(`identifier`, `type` , `atLeast1`)
 
 `arguments` declares a variable named `identifier` of type `seq[type]` initialized with
 the value of the sequential command line arguments that can be converted to type `type`.
@@ -150,13 +148,21 @@ same type to be stored at `identifier`.
 the command line. The same applies to other situations where one type is
 a supertype of another type in terms of conversion e.g., floats eat ints.
 
+<br/>
 
-**option `identifier`, `type`, `long name`, `short name` [, `default`]**
+**flag**(`identifier`,`long name`, `short name`)
+
+functionally, flags are just options (defined below) that have a pre-defined
+boolean `type` and a `default` value set to `false`.
+
+<br/>
+
+**option**(`identifier`, `type`, `long name`, `short name` , `default`)
 
 `option` declares a variable named `identifier` of type `type` initialized with
 the value of the corresponding command line option `--long name` or `-short name`
 converted to type `type` if it is present. The `--` and `-` are added
-by commandeer for your convenience. If the option is not present,
+by commandant for your convenience. If the option is not present,
 `identifier` is initialized to its default type value or the passed
 `default` value.
 
@@ -166,31 +172,31 @@ The command line option syntax follows Nim's one and adds space (!) i.e.,
 Syntactic sugar is provided for boolean options such that only the presence of
 the option is needed to give a true value.
 
+<br/>
 
-**exitoption `long name`, `short name`, `exit message`**
+**exitoption**(`long name`, `short name`, `exit message`)
 
 `exitoption` declares a long and short option string for which the application
 will immediately output `exit message` and exit. This can be used for subcommand specific exit messages too:
 
-```nim
-commandline:
-  subcommand add, "add":
-    arguments filenames, string
-    exitoption "help", "h", "add help"
-  exitoption "help", "h", "general help"
-```
-
 This is mostly used for printing the version or the help message.
 
+<br/>
 
-**errormsg `custom error message`**
+**errormsg**(`custom error message`)
 
 `errormsg` sets a string `custom error message` that will be displayed after the other error messages if the command line arguments or options are invalid.
+
+
+<br/>
 
 
 **Valid types for `type` are:**
 
 - `int`, `float`, `string`, `bool`, `char`
+
+
+<br/>
 
 
 Design
@@ -206,6 +212,8 @@ Design
   is what people get.
 
 
+<br/>
+
 Tests
 -----
 
@@ -213,10 +221,12 @@ Run the test suite:
 
     nimble tests
 
+<br/>
+
 TODO and Contribution
 ---------------------
 
-### Version 0.15.0 
+### Version 0.16.0 
 - Add `help=` string variable to all argument types, which will store a description of the argument
 - Create `--help` command that outputs a typical help help message
 
