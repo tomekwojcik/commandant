@@ -18,7 +18,7 @@ import commandant, strformat
 commandline:
   argument(value, int)
   flag(selfDestruct, "destroy", "d")
-  option(countdown, float, "time", "t", 12.0) # last parameter is a default value
+  option(timer, float, "time", "t", 12.0) # last parameter is a default value
 
   # if you define an argument, then you are REQUIRED to always provide a value.
   #     commandant will terminate the program if an argument is missing.
@@ -27,9 +27,9 @@ commandline:
   # options are also optional
 
 if selfDestruct:
-  echo fmt"Using {value} volts, the computer will go to sleep in {countdown} minutes"  
+  echo fmt"Using {value} volts, the computer will go to sleep in {timer} minutes"  
 else:
-  echo fmt"Sadly, I will continue to perform my duties, running at {value} Hz"
+  echo fmt"I will continue to perform my duties, running at {value} Hz"
 ```
 terminal:
 ```bash
@@ -228,7 +228,10 @@ TODO and Contribution
 
 ### Version 0.16.0 
 - Add `help=` string variable to all argument types, which will store a description of the argument
-- Create `--help` command that outputs a typical help help message
+- Create default `--help` command that outputs a typical help message
 
-### Version 0.16.0
+### Version 0.17.0
 - Create an html AND markdown version of the help message
+
+### Version 1.0.0
+- Improve error handling and update tests to reflect this
