@@ -1,8 +1,8 @@
 # Package
 
-version     = "0.15.0"
+version     = "0.15.1"
 author      = "Casey McMahon"
-description = "A small command line parsing DSL"
+description = "Commandant is a simple to use library for parsing command line arguments. Commandant is ideal for writing terminal applications, with  support for flags, options, subcommands, and custom exit options."
 license     = "MIT"
 
 installFiles = @["commandant.nim"]

@@ -1,10 +1,19 @@
 Commandant
 ==========
 
-Commandant gets data from the command line to your variables and exits
-gracefully if there is any issue.
+Commandant is a simple to use library for parsing command line arguments. 
+Commandant is ideal for writing terminal applications. All variables are
+defined right way, and are immediately accessable to your program. Some of 
+the highlight features also include:
 
-It does this little thing well and lets *you* deal with the rest.
+- subcommands
+- options 
+- flags
+- exit options (for custom help and version messages)
+- custom error messages
+- required arguments
+
+This library is a fork of Guillaume Viger's [Commandeer](https://github.com/fenekku/commandeer).
 
 Usage
 -----
@@ -219,7 +228,7 @@ Tests
 
 Run the test suite:
 
-    nimble tests
+    nimble test
 
 <br/>
 
