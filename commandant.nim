@@ -1,6 +1,7 @@
 import algorithm
 import parseopt
 import sequtils
+import std/options
 import strutils
 import tables
 import typetraits
@@ -13,6 +14,8 @@ type
   Quantifier {.pure.} = enum
     single, oneOrMore, zeroOrMore
   Assigner = tuple[assign: assignmentProc, quantity: Quantifier]
+  ExitReason* = enum
+    missingArgumentValue, missingOptionValue, exception
   # We only allow one level of Subcommand, so not a recursive definition
   Subcommand = ref object
     argumentAssigners: seq[Assigner]
@@ -20,6 +23,14 @@ type
     shortOptionAssigners: TableRef[string, Assigner]
     longOptionAssigners: TableRef[string, Assigner]
     activate: proc()
+
+
+type
+  CmdTokenKind* {.pure.} = enum
+    argument, option, subcommand, empty
+  CmdToken* = tuple
+    getOptResult: GetoptResult
+    kind: CmdTokenKind
 
 
 proc newSubcommand(p: proc() = proc()=discard): Subcommand =
@@ -50,11 +61,29 @@ proc getOptionAssigner(s: Subcommand, key: string): Assigner =
     return (proc(value: string) {.closure.} = discard, Quantifier.single)
 
 
-var errorMessage: string = ""
 var currentSubcommand = newSubcommand()
 var subCommands = newTable[string, Subcommand]()
 var cliTokens: seq[GetoptResult]
 var inSubcommand = false
+
+## Error proc ##
+
+var errorMessage: string = ""
+
+proc exitWithErrorMessage(msg="") =
+  if msg != "" and errorMessage != "":
+    quit msg & "\n" & errorMessage, QuitFailure
+  elif msg != "":
+    quit msg, QuitFailure
+  elif errorMessage != "":
+    quit errorMessage, QuitFailure
+  else:
+    quit QuitFailure
+
+proc handleError(reason: ExitReason, msg: string="", token: Option[CmdToken]=none(CmdToken)) =
+  exitWithErrorMessage(msg)
+
+var currentErrorProc = handleError
 
 ## Debugging procs ##
 
@@ -120,13 +149,6 @@ proc assignConversion(variable: var seq[char], value: string) =
 
 ## Interpretation of the tokens  ##
 
-type
-  CmdTokenKind {.pure.} = enum
-    argument, option, subcommand, empty
-  CmdToken = tuple
-    getOptResult: GetoptResult
-    kind: CmdTokenKind
-
 
 proc key(cmdToken: CmdToken): string =
   return cmdToken.getOptResult.key
@@ -163,17 +185,6 @@ proc addToken(token: CmdToken) =
   cliTokens.add(token.getOptResult)
 
 
-proc exitWithErrorMessage(msg="") =
-  if msg != "" and errorMessage != "":
-    quit msg & "\n" & errorMessage, QuitFailure
-  elif msg != "":
-    quit msg, QuitFailure
-  elif errorMessage != "":
-    quit errorMessage, QuitFailure
-  else:
-    quit QuitFailure
-
-
 proc interpretCli() =
   while true:
     var token = readCmdToken()
@@ -185,7 +196,10 @@ proc interpretCli() =
         let last = high(currentSubcommand.argumentAssigners)
         for assigner in currentSubcommand.argumentAssigners[currentSubcommand.index..last]:
           if assigner.quantity != Quantifier.zeroOrMore:
-            exitWithErrorMessage("Error: When a argument is defined, a value must always be provided")
+            currentErrorProc(
+              ExitReason.missingArgumentValue,
+              "Error: When a argument is defined, a value must always be provided",
+            )
       break
 
     of CmdTokenKind.subcommand:
@@ -218,7 +232,7 @@ proc interpretCli() =
           if atLeastOneAssignment:
             addToken(token)
           else:
-            exitWithErrorMessage(getCurrentExceptionMsg())
+            currentErrorProc(ExitReason.exception, getCurrentExceptionMsg())
 
       inc(currentSubcommand.index)
 
@@ -238,9 +252,13 @@ proc interpretCli() =
             exitWithErrorMessage(getCurrentExceptionMsg())
         elif token.value != "":
           # Conversion error
-          exitWithErrorMessage(getCurrentExceptionMsg())
+          currentErrorProc(ExitReason.exception, getCurrentExceptionMsg())
         else:
-          exitWithErrorMessage("Missing value for option '" & token.key & "'")
+          currentErrorProc(
+            ExitReason.missingOptionValue,
+            "Missing value for option '" & token.key & "'",
+            some(token),
+          )
 
 
 ## Command line dsl keywords ##
@@ -333,9 +351,9 @@ template option*(identifier: untyped, t: typeDesc, long, short: string): untyped
   currentSubcommand.shortOptionAssigners[short] = assigner
 
 
-template exitoption*(long, short, msg: string): untyped =
+template exitoption*(long, short, msg: string, errocode = QuitSuccess): untyped =
   var exiter = (
-    (proc(value: string) {.closure.} = quit msg, QuitSuccess),
+    (proc(value: string) {.closure.} = quit msg, errocode),
     Quantifier.single
   )
   currentSubcommand.longOptionAssigners[long] = exiter
@@ -368,3 +386,6 @@ template commandline*(statements: untyped): untyped =
   cliTokens = reversed(toSeq(parseopt.getopt()))
   statements
   interpretCli()
+
+template errorproc*(newErrorProc: proc(reason: ExitReason, msg: string="", token: Option[CmdToken]=none(CmdToken))): untyped =
+  currentErrorProc = newErrorProc
